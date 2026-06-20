@@ -13,17 +13,11 @@
 -- Usage:
 --   Step 1 — Run as SYSDBA (security setup):
 --     sqlplus sys/password@//host:1521/FREEPDB1 as sysdba
---     @install/01_create_tablespace.sql
---     @install/02_create_profile.sql
---     @install/03_create_roles_users.sql
---     @install/04_grant_privileges.sql
---     @install/05_create_audit_policies.sql
---     @install/06_grant_acl.sql
+--     @scripts/acl/grant_acl.sql
 --
 --   Step 2 — Run as Application Schema Owner:
 --     sqlplus your_schema/password@//host:1521/FREEPDB1
---     @install/07_create_tables.sql
---     @install/08_create_packages.sql
+--     @install/install_all.sql
 --
 --   Or run this master script (adjust connection as needed):
 --     @install/install_all.sql
