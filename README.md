@@ -76,6 +76,8 @@ BEGIN
 END;
 ```
 
+![APEX Page Process Example](screenshot/use_get_report.png)
+
 For more complex examples including multiple parameters or different output formats, please check the [Examples directory](examples/).
 
 ## Security & Best Practices
