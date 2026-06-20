@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JasperReports — Oracle Database Datasource Configuration
+  
+  Configure this in JasperReports Server admin panel or
+  import via REST API during provisioning.
+
+  Connection Details:
+    Host:     oracle-db (Docker service name or your DB hostname)
+    Port:     1521
+    Service:  FREEPDB1
+    Driver:   oracle.jdbc.OracleDriver
+    
+  Security Note:
+    Replace placeholder credentials with your actual values.
+    In production, use JasperReports Server's built-in
+    credential management instead of this XML file.
+-->
+<bean id="oracleDataSource" 
+      class="com.jaspersoft.jasperserver.api.metadata.jasperreports.domain.impl.datasource.JdbcReportDataSourceImpl">
+    <property name="driverClass" value="oracle.jdbc.OracleDriver"/>
+    <property name="connectionUrl" value="jdbc:oracle:thin:@oracle-db:1521/FREEPDB1"/>
+    <property name="username" value="YOUR_JASPER_DB_USER"/>
+    <property name="password" value="YOUR_JASPER_DB_PASSWORD"/>
+    <property name="name" value="Oracle Database"/>
+    <property name="description" value="Oracle Database connection for JasperReports"/>
+</bean>

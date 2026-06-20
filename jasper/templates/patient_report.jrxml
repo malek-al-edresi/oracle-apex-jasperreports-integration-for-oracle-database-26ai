@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Patient Profile Report — JasperReports Template
+  
+  This JRXML template demonstrates:
+  - Input parameters (P_PATIENT_ID, P_TENANT_SCHEMA)
+  - Dynamic schema support for multi-tenant architectures
+  - Basic report layout with header, detail, and footer bands
+  - QR code placeholder for patient ID
+  
+  Usage:
+  1. Upload this file to JasperReports Server
+  2. Configure the Oracle datasource
+  3. Call via JASPER_REPORT_PKG.GET_REPORT from Oracle APEX
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="patient_profile"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <!-- ── Parameters ──────────────────────────────────────── -->
+    <parameter name="P_PATIENT_ID" class="java.lang.Integer">
+        <parameterDescription><![CDATA[Patient ID to generate the report for]]></parameterDescription>
+    </parameter>
+    <parameter name="P_TENANT_SCHEMA" class="java.lang.String">
+        <parameterDescription><![CDATA[Tenant schema name for multi-tenant support]]></parameterDescription>
+        <defaultValueExpression><![CDATA["PUBLIC"]]></defaultValueExpression>
+    </parameter>
+
+    <!-- ── Query ───────────────────────────────────────────── -->
+    <queryString language="SQL">
+        <![CDATA[
+            SELECT 
+                p.patient_id,
+                p.first_name,
+                p.last_name,
+                p.date_of_birth,
+                p.gender,
+                p.phone_number,
+                p.email,
+                p.address,
+                p.blood_type,
+                p.emergency_contact_name,
+                p.emergency_contact_phone,
+                p.registration_date
+            FROM patients p
+            WHERE p.patient_id = $P{P_PATIENT_ID}
+        ]]>
+    </queryString>
+
+    <!-- ── Fields ──────────────────────────────────────────── -->
+    <field name="PATIENT_ID" class="java.lang.Integer"/>
+    <field name="FIRST_NAME" class="java.lang.String"/>
+    <field name="LAST_NAME" class="java.lang.String"/>
+    <field name="DATE_OF_BIRTH" class="java.sql.Date"/>
+    <field name="GENDER" class="java.lang.String"/>
+    <field name="PHONE_NUMBER" class="java.lang.String"/>
+    <field name="EMAIL" class="java.lang.String"/>
+    <field name="ADDRESS" class="java.lang.String"/>
+    <field name="BLOOD_TYPE" class="java.lang.String"/>
+    <field name="EMERGENCY_CONTACT_NAME" class="java.lang.String"/>
+    <field name="EMERGENCY_CONTACT_PHONE" class="java.lang.String"/>
+    <field name="REGISTRATION_DATE" class="java.sql.Date"/>
+
+    <!-- ── Title Band ──────────────────────────────────────── -->
+    <title>
+        <band height="80">
+            <staticText>
+                <reportElement x="0" y="10" width="555" height="30"/>
+                <textElement textAlignment="Center">
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Patient Profile Report]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="0" y="45" width="555" height="20"/>
+                <textElement textAlignment="Center">
+                    <font size="10" isItalic="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Generated: " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date())]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="70" width="555" height="1"/>
+            </line>
+        </band>
+    </title>
+
+    <!-- ── Detail Band ─────────────────────────────────────── -->
+    <detail>
+        <band height="350">
+            <!-- Personal Information Section -->
+            <staticText>
+                <reportElement x="0" y="10" width="555" height="25" backcolor="#2C5F8A" mode="Opaque"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true" color="#FFFFFF"/>
+                </textElement>
+                <text><![CDATA[Personal Information]]></text>
+            </staticText>
+
+            <!-- Row 1: Name -->
+            <staticText>
+                <reportElement x="0" y="45" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Patient ID:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="120" y="45" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{PATIENT_ID}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="280" y="45" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Full Name:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="45" width="155" height="20"/>
+                <textFieldExpression><![CDATA[$F{FIRST_NAME} + " " + $F{LAST_NAME}]]></textFieldExpression>
+            </textField>
+
+            <!-- Row 2: DOB & Gender -->
+            <staticText>
+                <reportElement x="0" y="70" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Date of Birth:]]></text>
+            </staticText>
+            <textField pattern="yyyy-MM-dd">
+                <reportElement x="120" y="70" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{DATE_OF_BIRTH}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="280" y="70" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Gender:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="400" y="70" width="155" height="20"/>
+                <textFieldExpression><![CDATA[$F{GENDER}]]></textFieldExpression>
+            </textField>
+
+            <!-- Row 3: Blood Type -->
+            <staticText>
+                <reportElement x="0" y="95" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Blood Type:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="95" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{BLOOD_TYPE}]]></textFieldExpression>
+            </textField>
+
+            <!-- Contact Information Section -->
+            <staticText>
+                <reportElement x="0" y="130" width="555" height="25" backcolor="#2C5F8A" mode="Opaque"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true" color="#FFFFFF"/>
+                </textElement>
+                <text><![CDATA[Contact Information]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="0" y="165" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Phone:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="165" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{PHONE_NUMBER}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="280" y="165" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Email:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="165" width="155" height="20"/>
+                <textFieldExpression><![CDATA[$F{EMAIL}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="190" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Address:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="190" width="435" height="20"/>
+                <textFieldExpression><![CDATA[$F{ADDRESS}]]></textFieldExpression>
+            </textField>
+
+            <!-- Emergency Contact Section -->
+            <staticText>
+                <reportElement x="0" y="225" width="555" height="25" backcolor="#8B0000" mode="Opaque"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="12" isBold="true" color="#FFFFFF"/>
+                </textElement>
+                <text><![CDATA[Emergency Contact]]></text>
+            </staticText>
+
+            <staticText>
+                <reportElement x="0" y="260" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Contact Name:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="260" width="150" height="20"/>
+                <textFieldExpression><![CDATA[$F{EMERGENCY_CONTACT_NAME}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="280" y="260" width="120" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Contact Phone:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="400" y="260" width="155" height="20"/>
+                <textFieldExpression><![CDATA[$F{EMERGENCY_CONTACT_PHONE}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <!-- ── Page Footer ─────────────────────────────────────── -->
+    <pageFooter>
+        <band height="30">
+            <line>
+                <reportElement x="0" y="0" width="555" height="1"/>
+            </line>
+            <textField>
+                <reportElement x="0" y="5" width="277" height="20"/>
+                <textElement>
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Confidential — Patient Profile Report"]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="400" y="5" width="155" height="20"/>
+                <textElement textAlignment="Right">
+                    <font size="8"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+</jasperReport>

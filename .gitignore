@@ -1,0 +1,63 @@
+# ══════════════════════════════════════════════════════════════
+# Oracle APEX + JasperReports Integration — .gitignore
+# ══════════════════════════════════════════════════════════════
+
+# ── Secrets & Environment Files ──────────────────────────────
+.env
+.env.dev
+.env.staging
+.env.prod
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+
+# ── Oracle Data ──────────────────────────────────────────────
+**/oradata/
+**/diag/
+**/audit/
+*.dmp
+*.log.gz
+*.trc
+
+# ── Compiled PL/SQL ──────────────────────────────────────────
+*.plb
+
+# ── JasperReports Compiled ───────────────────────────────────
+*.jasper
+
+# ── Logs ─────────────────────────────────────────────────────
+logs/
+*.log
+!logs/.gitkeep
+
+# ── Docker ───────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Backups ──────────────────────────────────────────────────
+backups/
+*.dmp
+*.gz
+
+# ── OS / IDE ─────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ── Node (if using any tooling) ──────────────────────────────
+node_modules/
+package-lock.json
+
+# ── Temporary Files ──────────────────────────────────────────
+tmp/
+temp/
+*.tmp

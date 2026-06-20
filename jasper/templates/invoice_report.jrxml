@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Invoice Report — JasperReports Template
+  
+  Demonstrates:
+  - Invoice header with company info
+  - Grouped line items with subtotals
+  - Summary band with grand total
+  - P_INVOICE_ID parameter
+-->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+                                  http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="invoice_report"
+              pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="P_INVOICE_ID" class="java.lang.Integer">
+        <parameterDescription><![CDATA[Invoice ID]]></parameterDescription>
+    </parameter>
+    <parameter name="P_TENANT_SCHEMA" class="java.lang.String">
+        <defaultValueExpression><![CDATA["PUBLIC"]]></defaultValueExpression>
+    </parameter>
+
+    <queryString language="SQL">
+        <![CDATA[
+            SELECT 
+                i.invoice_id,
+                i.invoice_date,
+                i.customer_name,
+                i.customer_address,
+                i.total_amount,
+                il.item_description,
+                il.quantity,
+                il.unit_price,
+                il.line_total
+            FROM invoices i
+            JOIN invoice_lines il ON i.invoice_id = il.invoice_id
+            WHERE i.invoice_id = $P{P_INVOICE_ID}
+            ORDER BY il.line_number
+        ]]>
+    </queryString>
+
+    <field name="INVOICE_ID" class="java.lang.Integer"/>
+    <field name="INVOICE_DATE" class="java.sql.Date"/>
+    <field name="CUSTOMER_NAME" class="java.lang.String"/>
+    <field name="CUSTOMER_ADDRESS" class="java.lang.String"/>
+    <field name="TOTAL_AMOUNT" class="java.math.BigDecimal"/>
+    <field name="ITEM_DESCRIPTION" class="java.lang.String"/>
+    <field name="QUANTITY" class="java.lang.Integer"/>
+    <field name="UNIT_PRICE" class="java.math.BigDecimal"/>
+    <field name="LINE_TOTAL" class="java.math.BigDecimal"/>
+
+    <variable name="GRAND_TOTAL" class="java.math.BigDecimal" calculation="Sum">
+        <variableExpression><![CDATA[$F{LINE_TOTAL}]]></variableExpression>
+    </variable>
+
+    <title>
+        <band height="120">
+            <staticText>
+                <reportElement x="0" y="10" width="555" height="30"/>
+                <textElement textAlignment="Center">
+                    <font size="20" isBold="true"/>
+                </textElement>
+                <text><![CDATA[INVOICE]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="50" width="80" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Invoice #:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="80" y="50" width="200" height="20"/>
+                <textFieldExpression><![CDATA[$F{INVOICE_ID}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="350" y="50" width="60" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Date:]]></text>
+            </staticText>
+            <textField pattern="yyyy-MM-dd">
+                <reportElement x="410" y="50" width="145" height="20"/>
+                <textFieldExpression><![CDATA[$F{INVOICE_DATE}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="75" width="80" height="20"/>
+                <textElement><font isBold="true"/></textElement>
+                <text><![CDATA[Customer:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="80" y="75" width="475" height="20"/>
+                <textFieldExpression><![CDATA[$F{CUSTOMER_NAME}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="0" y="110" width="555" height="1"/>
+            </line>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="25">
+            <staticText>
+                <reportElement x="0" y="0" width="280" height="20" backcolor="#336699" mode="Opaque"/>
+                <textElement verticalAlignment="Middle"><font isBold="true" color="#FFFFFF"/></textElement>
+                <text><![CDATA[  Description]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="280" y="0" width="80" height="20" backcolor="#336699" mode="Opaque"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true" color="#FFFFFF"/></textElement>
+                <text><![CDATA[Qty]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="360" y="0" width="95" height="20" backcolor="#336699" mode="Opaque"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true" color="#FFFFFF"/></textElement>
+                <text><![CDATA[Unit Price  ]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="455" y="0" width="100" height="20" backcolor="#336699" mode="Opaque"/>
+                <textElement textAlignment="Right" verticalAlignment="Middle"><font isBold="true" color="#FFFFFF"/></textElement>
+                <text><![CDATA[Total  ]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="20">
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="0" width="280" height="18"/>
+                <textFieldExpression><![CDATA["  " + $F{ITEM_DESCRIPTION}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="280" y="0" width="80" height="18"/>
+                <textElement textAlignment="Center"/>
+                <textFieldExpression><![CDATA[$F{QUANTITY}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="360" y="0" width="95" height="18"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{UNIT_PRICE}]]></textFieldExpression>
+            </textField>
+            <textField pattern="#,##0.00">
+                <reportElement x="455" y="0" width="100" height="18"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA[$F{LINE_TOTAL}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="40">
+            <line>
+                <reportElement x="0" y="0" width="555" height="1"/>
+            </line>
+            <staticText>
+                <reportElement x="360" y="10" width="95" height="25"/>
+                <textElement textAlignment="Right"><font size="12" isBold="true"/></textElement>
+                <text><![CDATA[Grand Total:]]></text>
+            </staticText>
+            <textField pattern="#,##0.00">
+                <reportElement x="455" y="10" width="100" height="25"/>
+                <textElement textAlignment="Right"><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$V{GRAND_TOTAL}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+    <pageFooter>
+        <band height="25">
+            <textField>
+                <reportElement x="400" y="5" width="155" height="15"/>
+                <textElement textAlignment="Right"><font size="8"/></textElement>
+                <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+</jasperReport>

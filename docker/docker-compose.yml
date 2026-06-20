@@ -1,0 +1,151 @@
+# ══════════════════════════════════════════════════════════════
+# Oracle APEX + JasperReports Integration — Docker Compose
+# ══════════════════════════════════════════════════════════════
+#
+# This Docker Compose file sets up the complete stack:
+#   - Oracle Database 26ai Free (with APEX pre-installed via ORDS)
+#   - ORDS (Oracle REST Data Services) with APEX
+#   - JasperReports Server (Bitnami)
+#   - MariaDB (backend database for JasperReports)
+#
+# Usage:
+#   1. Copy .env.example to .env and fill in values
+#   2. docker compose up -d
+#   3. Wait ~10-15 minutes for Oracle DB first-time initialization
+#   4. Access APEX at http://localhost:8181/ords/apex
+#   5. Access JasperReports at http://localhost:8383/jasperserver
+# ══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── Oracle Database 26ai ─────────────────────────────────
+  oracle-db:
+    image: container-registry.oracle.com/database/free:latest
+    container_name: oracle-db
+    hostname: oracle-db
+    platform: linux/amd64
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "${ORACLE_DB_HOST_PORT:-1521}:1521"
+    environment:
+      - ORACLE_PWD=${ORACLE_SYS_PASSWORD:?ORACLE_SYS_PASSWORD is required}
+      - ORACLE_CHARACTERSET=AL32UTF8
+    volumes:
+      - oracle-db-data:/opt/oracle/oradata
+      - ./healthcheck.sh:/opt/oracle/scripts/healthcheck.sh:ro
+    networks:
+      - jasper-network
+    shm_size: '2g'
+    stop_grace_period: 2m
+    healthcheck:
+      test: ["CMD", "bash", "/opt/oracle/scripts/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 5m
+    mem_limit: 4g
+    mem_reservation: 2g
+
+  # ── ORDS (Oracle REST Data Services + APEX) ──────────────
+  ords:
+    image: container-registry.oracle.com/database/ords:latest
+    container_name: ords
+    platform: linux/amd64
+    restart: unless-stopped
+    tty: true
+    command: ["serve", "--port", "8080"]
+    ports:
+      - "${ORDS_HOST_PORT:-8181}:8080"
+    environment:
+      DBHOST: oracle-db
+      DBPORT: 1521
+      DBSERVICENAME: FREEPDB1
+      ORACLE_PWD: ${ORACLE_SYS_PASSWORD}
+      ORDS_PWD: ${ORDS_PWD:-${ORACLE_SYS_PASSWORD}}
+      _JAVA_OPTIONS: >-
+        -Xms512m
+        -Xmx1g
+    volumes:
+      - ords-config:/etc/ords/config
+    networks:
+      - jasper-network
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/ords/"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 3m
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+
+  # ── JasperReports Server (Bitnami) ───────────────────────
+  jasper-server:
+    image: bitnami/jasperreports:latest
+    container_name: jasper-server
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "${JASPER_HOST_PORT:-8383}:8080"
+    environment:
+      - JASPERREPORTS_USERNAME=${JASPERREPORTS_USERNAME:-jasperadmin}
+      - JASPERREPORTS_PASSWORD=${JASPERREPORTS_PASSWORD:-jasperadmin}
+      - JASPERREPORTS_DATABASE_HOST=jasper-db
+      - JASPERREPORTS_DATABASE_PORT_NUMBER=3306
+      - JASPERREPORTS_DATABASE_USER=${JASPERREPORTS_DATABASE_USER:-bn_jasperreports}
+      - JASPERREPORTS_DATABASE_PASSWORD=${JASPERREPORTS_DATABASE_PASSWORD:-bitnami_jasper}
+      - JASPERREPORTS_DATABASE_NAME=${JASPERREPORTS_DATABASE_NAME:-bitnami_jasperreports}
+    volumes:
+      - jasper-server-data:/bitnami/jasperreports
+    networks:
+      - jasper-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/jasperserver/login.html"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    depends_on:
+      jasper-db:
+        condition: service_healthy
+
+  # ── MariaDB (JasperReports Backend) ──────────────────────
+  jasper-db:
+    image: bitnami/mariadb:latest
+    container_name: jasper-db
+    restart: unless-stopped
+    tty: true
+    environment:
+      - ALLOW_EMPTY_PASSWORD=no
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-rootpassword}
+      - MARIADB_DATABASE=${JASPERREPORTS_DATABASE_NAME:-bitnami_jasperreports}
+      - MARIADB_USER=${JASPERREPORTS_DATABASE_USER:-bn_jasperreports}
+      - MARIADB_PASSWORD=${JASPERREPORTS_DATABASE_PASSWORD:-bitnami_jasper}
+    volumes:
+      - jasper-mariadb-data:/bitnami/mariadb
+    networks:
+      - jasper-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -u root --password=${MARIADB_ROOT_PASSWORD:-rootpassword} --silent"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# ── Volumes ────────────────────────────────────────────────
+volumes:
+  oracle-db-data:
+    name: jasper-oracle-db-data
+  ords-config:
+    name: jasper-ords-config
+  jasper-server-data:
+    name: jasper-server-data
+  jasper-mariadb-data:
+    name: jasper-mariadb-data
+
+# ── Networks ───────────────────────────────────────────────
+networks:
+  jasper-network:
+    name: jasper-network
+    driver: bridge
